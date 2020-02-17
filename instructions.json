@@ -1,0 +1,30 @@
+{
+    "instructionTypes": {
+        "2operand": {
+            "fields": [
+                {
+                    "type": "zero",
+                    "bits": [15,14]
+                },
+                {
+                    "type": "op",
+                    "bits": [13,12,11,10]
+                },
+                {
+                    "type": "rd",
+                    "bits": [8,7,6,5,4]
+                },
+                {
+                    "type": "rr",
+                    "bits": [9,3,2,1,0]
+                }
+            ]
+        }
+    },
+    "instructions": {
+        "add": {
+            "format": "2operand",
+            "opcode": "0011"
+        }
+    }
+}
