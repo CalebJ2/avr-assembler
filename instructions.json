@@ -1,21 +1,22 @@
 {
     "instructionTypes": {
         "2operand": {
+            "regex": ".*\\s(?P<Rd>\\w+),\\s*(?P<Rr>\\w+)",
             "fields": [
                 {
-                    "type": "zero",
+                    "type": "0",
                     "bits": [15,14]
                 },
                 {
-                    "type": "op",
+                    "type": "opcode",
                     "bits": [13,12,11,10]
                 },
                 {
-                    "type": "rd",
+                    "type": "Rd",
                     "bits": [8,7,6,5,4]
                 },
                 {
-                    "type": "rr",
+                    "type": "Rr",
                     "bits": [9,3,2,1,0]
                 }
             ]
