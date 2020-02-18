@@ -6,7 +6,7 @@ Written to learn about the AVR architecture and assembler process. Not written a
 
 See the wiki for more resources: https://github.com/CalebJ2/avr-assembler/wiki
 
-Run with `python main.py <filename>`. Written for python 2.7 because that's what I happened to have installed.
+Run with `python3 main.py <filename>`
 
 Supported preprocessor features:
 - `.include`

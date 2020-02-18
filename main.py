@@ -1,5 +1,4 @@
 import argparse
-import exceptions
 import warnings
 import json
 import re
@@ -167,7 +166,7 @@ def writeHex(sourceFilename):
     # place to put all the hex on this line
     hexLine = BitArray()
     # make 2 digit hex number with number of program bytes on this line
-    dataSize = BitArray(uint=len(programHex)/8, length = 8)
+    dataSize = BitArray(uint=len(programHex)//8, length = 8)
     hexLine.append(dataSize)
     # calculate start address. 4 digit hex number
     startAddress = BitArray(uint=0, length = 16)

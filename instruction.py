@@ -40,7 +40,7 @@ class Instruction:
                 groupValue = match.group(field)
                 # set fieldValue to value in the instruction
                 self.fieldValues[field] = groupValue
-            except IndexError:    
+            except (IndexError, AttributeError):    
                 # else it is probably the opcode or one of the default fields
                 if field == "opcode":
                     self.fieldValues["opcode"] = self.definition["opcode"]

@@ -1,2 +1,2 @@
 sudo apt-get install avrdude avra
-pip install bitstring
+pip3 install bitstring
