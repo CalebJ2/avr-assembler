@@ -70,7 +70,7 @@ def parseFile(filename):
         # evaluate numbers and labels
         line.evalFields(labels)
         line.generateBytecode()
-        print(line.bytecode)
+        #print(line.bytecode.hex)
     
     fileDepth -= 1
 
@@ -134,4 +134,51 @@ def setLabel(label, value, lineCounter, filename):
     else:
         labels[label] = value
 
+def printPretty(sourceFilename):
+    filename = re.match(r"(.*)\.asm", sourceFilename).group(1) + ".pretty.hex";
+    print("Writing " + filename)
+    # clear the file
+    open(filename, "w").close()
+    f = open(filename, "a")
+    for line in program:
+        f.write(line.source.ljust(20) + "0b" + line.bytecode.bin + "   0x" + line.bytecode.hex + "\n")
+
+def writeHex(sourceFilename):
+    filename = re.match(r"(.*)\.asm", sourceFilename).group(1) + ".hex";
+    print("Writing " + filename)
+    # clear the file
+    open(filename, "w").close()
+    f = open(filename, "a")
+    # get program hex
+    programHex = BitArray()
+    for line in program:
+        programHex.append(line.bytecode)
+    # todo: make this split hex into 256 byte chunks if needed
+    # until then just error
+    if len(programHex)/8 > 256:
+        raise Exception("Program exceeded 256 bytes")
+    # place to put all the hex on this line
+    hexLine = BitArray()
+    # make 2 digit hex number with number of program bytes on this line
+    dataSize = BitArray(uint=len(programHex)/8, length = 8)
+    hexLine.append(dataSize)
+    # calculate start address. 4 digit hex number
+    startAddress = BitArray(uint=0, length = 16)
+    hexLine.append(startAddress)
+    # record type of data is 0x00. 2 digit hex number
+    recordType = BitArray(uint=0, length = 8)
+    hexLine.append(recordType)
+    # add program
+    hexLine.append(programHex)
+    # calculate checksum
+    # todo
+    checksum = BitArray()
+    f.write(":" + hexLine.hex + checksum.hex + "\n")
+    # write line with EOF record type
+    f.write(":00000001FF")
+
+
 parseFile(args.sourceFile)
+printPretty(args.sourceFile)
+writeHex(args.sourceFile)
+print("Done")

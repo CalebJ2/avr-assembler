@@ -69,7 +69,7 @@ class Instruction:
                         value = self.evalGenReg(value, fieldLength)
                     else:
                         raise Exception("Unknown value '" + value + "' on line " + str(self.lineNumber) + " of '" + self.filename + "'")
-        print(self.fieldValues)
+        #print(self.fieldValues)
 
     # register bit fields can be 3, 4, or 5 bits long
     # 3 bits -> r16-23
@@ -89,10 +89,11 @@ class Instruction:
             # convert int to binary
             length = len(fieldInfo["bits"])
             fieldBits = BitArray(uint=self.fieldValues[field], length=length)
-            print(fieldBits)
+            #print(fieldBits)
             # but bits in their spots
             for i in range(len(fieldInfo["bits"])):
                 # value, position
-                bytecode.set(fieldBits[i], fieldInfo["bits"][i])
+                # subtract position from 15 to convert addresses 0-15 to 15-0
+                bytecode.set(fieldBits[i], 15-fieldInfo["bits"][i])
         self.bytecode = bytecode
         return self.bytecode

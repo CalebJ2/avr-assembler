@@ -5,7 +5,7 @@
 test
 */
   add UMSEL0,UMSEL0 ; two layer label eval
-add r1,r2
+add r0,r31
 ; test 3
 
 .include "./m328Pdef.inc"
