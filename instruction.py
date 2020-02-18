@@ -2,17 +2,19 @@ import re
 import json
 from bitstring import BitArray, BitStream
 
+
 class Instruction:
     def __init__(self, source, lineNumber, filename, address):
-        self.source = source # instruction string
+        self.source = source  # instruction string
         self.lineNumber = lineNumber
         self.filename = filename
-        self.address = address # this instruction's location relative to start of program
-        self.definition = None # which instruction and format this is
-        self.instrFormat = None # the format schema defining the bytecode fields
-        self.fieldValues = {} # values to go in the fields
-        self.bytecode = None # string with bytecode in binary format
+        self.address = address  # this instruction's location relative to start of program
+        self.definition = None  # which instruction and format this is
+        self.instrFormat = None  # the format schema defining the bytecode fields
+        self.fieldValues = {}  # values to go in the fields
+        self.bytecode = None  # string with bytecode in binary format
     # makes print(instruction) work better
+
     def __repr__(self):
         if self.bytecode:
             return self.bytecode
@@ -20,14 +22,17 @@ class Instruction:
             return self.source
         else:
             return ""
+
     def parseOp(self):
         match = re.match(r"([a-zA-Z]+)\s+", self.source)
         if match:
             return match.group(1)
         else:
             return None
+
     def setDefinition(self, definition):
         self.definition = definition
+
     def setFormat(self, instrFormat):
         self.instrFormat = instrFormat
         # parse instruction using the format provided
@@ -40,7 +45,7 @@ class Instruction:
                 groupValue = match.group(field)
                 # set fieldValue to value in the instruction
                 self.fieldValues[field] = groupValue
-            except (IndexError, AttributeError):    
+            except (IndexError, AttributeError):
                 # else it is probably the opcode or one of the default fields
                 if field == "opcode":
                     self.fieldValues["opcode"] = self.definition["opcode"]

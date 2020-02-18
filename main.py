@@ -15,14 +15,15 @@ asm = open(args.sourceFile, 'r')
 
 program = []
 macros = {}
-labels = {} # set by labels positions or .equ directives
+labels = {}  # set by labels positions or .equ directives
 
 schema = json.load(open('instructions.json', 'r'))
 
 # flags
 inComment = False
-fileDepth = 0 # how many files we have recursed into
+fileDepth = 0  # how many files we have recursed into
 locationCounter = 1
+
 
 def parseFile(filename):
     global locationCounter
@@ -33,7 +34,7 @@ def parseFile(filename):
     print("Parsing file '" + filename + "'")
 
     lineItr = asm.readline()
-    asm.seek(0,0)
+    asm.seek(0, 0)
     lineCounter = 0
     # read in the file and run the preprocessor
     while lineItr:
@@ -74,7 +75,7 @@ def parseFile(filename):
         except:
             print(line.filename + "(" + str(line.lineNumber) + ") : Error :")
             raise
-    
+
     fileDepth -= 1
 
 # Modifies line. Returns true if it is an instruction
@@ -87,7 +88,7 @@ def preprocess(line, lineCounter, filename):
         if re.search(r".*\*\/", line):
             inComment = False
             line = re.sub(r".*\*\/", "", line)
-        else: # still in comment
+        else:  # still in comment
             line = ""
             return None
     # look for single line comments ; or // or /*  */
@@ -96,7 +97,7 @@ def preprocess(line, lineCounter, filename):
     if (re.search(r"\/\*", line)):
         line = re.sub(r"\/\*.*", "", line)
         inComment = True
-    
+
     # trim whitespace and newlines
     line = re.sub(r"^\s+|\s+$", "", line)
     # exit if the line is blank now
@@ -117,7 +118,7 @@ def preprocess(line, lineCounter, filename):
             setLabel(match.group(1), match.group(2), lineCounter, filename)
             return None
         else:
-            #warnings.warn(filename + "(" + str(line.lineNumber) + ") : Warning : Unknown preprocessor directive '" + directive.group(0) + "')
+            print(filename + "(" + str(lineCounter) + ") : Warning : Ignoring unknown preprocessor directive '" + directive.group(0) + "'")
             return None
 
     # check for labels
@@ -126,7 +127,7 @@ def preprocess(line, lineCounter, filename):
         setLabel(label.group(1), locationCounter, lineCounter, filename)
         # label is recorded, remove it from the string
         line = re.sub(r"([a-zA-Z0-9]+):\s*", "", line)
-    
+
     # make lower case so instructions and labels will be case insensitive
     return line.lower()
 
@@ -139,6 +140,7 @@ def setLabel(label, value, lineCounter, filename):
         raise Exception(filename + "(" + str(lineCounter) + ") : Redefinition of label '" + label + "'")
     else:
         labels[label] = value
+
 
 def printPretty(sourceFilename):
     filename = sourceFilename + ".pretty.hex"
@@ -166,13 +168,13 @@ def writeHex(sourceFilename):
     # place to put all the hex on this line
     hexLine = BitArray()
     # make 2 digit hex number with number of program bytes on this line
-    dataSize = BitArray(uint=len(programHex)//8, length = 8)
+    dataSize = BitArray(uint=len(programHex)//8, length=8)
     hexLine.append(dataSize)
     # calculate start address. 4 digit hex number
-    startAddress = BitArray(uint=0, length = 16)
+    startAddress = BitArray(uint=0, length=16)
     hexLine.append(startAddress)
     # record type of data is 0x00. 2 digit hex number
-    recordType = BitArray(uint=0, length = 8)
+    recordType = BitArray(uint=0, length=8)
     hexLine.append(recordType)
     # add program
     hexLine.append(programHex)
@@ -189,9 +191,10 @@ def calculateChecksum(bits):
     for byte in bits.cut(8):
         sum += byte.int
     # take twos complement
-    complementBits = BitArray(int=-sum, length = 20)
+    complementBits = BitArray(int=-sum, length=20)
     # get last 8 bits
     return complementBits[-8:]
+
 
 parseFile(args.sourceFile)
 filename = re.match(r"(.*)\.asm", args.sourceFile).group(1)
