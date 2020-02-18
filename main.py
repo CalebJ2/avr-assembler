@@ -3,12 +3,14 @@ import exceptions
 import warnings
 import json
 import re
+import subprocess
 from bitstring import BitArray, BitStream
 from instruction import Instruction
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("sourceFile", help="The source file to assemble")
+ap.add_argument("--upload", action="store_true", help="Whether to run the upload.sh script")
 args = ap.parse_args()
 asm = open(args.sourceFile, 'r')
 
@@ -133,7 +135,7 @@ def setLabel(label, value, lineCounter, filename):
         labels[label] = value
 
 def printPretty(sourceFilename):
-    filename = re.match(r"(.*)\.asm", sourceFilename).group(1) + ".pretty.hex";
+    filename = sourceFilename + ".pretty.hex"
     print("Writing " + filename)
     # clear the file
     open(filename, "w").close()
@@ -142,7 +144,7 @@ def printPretty(sourceFilename):
         f.write(line.source.ljust(20) + "0b" + line.bytecode.bin + "   0x" + line.bytecode.hex.upper() + "\n")
 
 def writeHex(sourceFilename):
-    filename = re.match(r"(.*)\.asm", sourceFilename).group(1) + ".hex";
+    filename = sourceFilename + ".hex"
     print("Writing " + filename)
     # clear the file
     open(filename, "w").close()
@@ -186,6 +188,10 @@ def calculateChecksum(bits):
     return complementBits[-8:]
 
 parseFile(args.sourceFile)
-printPretty(args.sourceFile)
-writeHex(args.sourceFile)
+filename = re.match(r"(.*)\.asm", args.sourceFile).group(1)
+printPretty(filename)
+writeHex(filename)
+if args.upload:
+    print("Running upload.sh")
+    subprocess.call(["bash ./upload.sh " + filename + ".hex"], shell=True)
 print("Done")
