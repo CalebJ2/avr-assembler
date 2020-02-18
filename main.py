@@ -69,6 +69,8 @@ def parseFile(filename):
         
         # evaluate numbers and labels
         line.evalFields(labels)
+        line.generateBytecode()
+        print(line.bytecode)
     
     fileDepth -= 1
 

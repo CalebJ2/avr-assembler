@@ -2,30 +2,26 @@
     "instructionTypes": {
         "2operand": {
             "regex": ".*\\s(?P<Rd>\\w+),\\s*(?P<Rr>\\w+)",
-            "fields": [
-                {
-                    "type": "0",
+            "fields": {
+                "0": {
                     "bits": [15,14]
                 },
-                {
-                    "type": "opcode",
+                "opcode": {
                     "bits": [13,12,11,10]
                 },
-                {
-                    "type": "Rd",
+                "Rd": {
                     "bits": [8,7,6,5,4]
                 },
-                {
-                    "type": "Rr",
+                "Rr": {
                     "bits": [9,3,2,1,0]
                 }
-            ]
+            }
         }
     },
     "instructions": {
         "add": {
             "format": "2operand",
-            "opcode": "0011"
+            "opcode": "0b0011"
         }
     }
 }
