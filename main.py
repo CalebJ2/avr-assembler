@@ -50,8 +50,7 @@ def parseFile(filename):
     if (fileDepth > 1):
         fileDepth -= 1
         return
-    print("Preprocessed program:")
-    print(program)
+    print("Preprocessing done")
 
     print("Assembling bytecode")
     for line in program:
@@ -64,13 +63,12 @@ def parseFile(filename):
             try:
                 line.setDefinition(schema["instructions"][op])
             except KeyError:
-                raise Exception("Unsupported instruction '" + op + "' on line " + str(line.lineNumber) + " of '" + line.filename + "'")
+                raise Exception(filename + "(" + line.lineNumber + ") : Unsupported instruction '" + op + "'")
             line.setFormat(schema["instructionTypes"][line.definition["format"]])
         
         # evaluate numbers and labels
         line.evalFields(labels)
         line.generateBytecode()
-        #print(line.bytecode.hex)
     
     fileDepth -= 1
 
@@ -101,7 +99,7 @@ def preprocess(line, lineCounter, filename):
         return None
     # check for stuff not supported by this yet
     if re.search(r"!|~|-|\*|\+|%|<<|>>|<|<=|>|==|!=|>=|&|\^|\||&&|\|\||\?", line):
-        raise Exception("Unsupported operator on line " + str(lineCounter) + " of '" + filename + "'")
+        raise Exception(filename + "(" + lineCounter + ") : Unsupported operator")
 
     # check for directives
     directive = re.match(r"(\#[a-zA-Z]+)|(\.[a-zA-Z]+)", line)
@@ -114,7 +112,7 @@ def preprocess(line, lineCounter, filename):
             setLabel(match.group(1), match.group(2), lineCounter, filename)
             return None
         else:
-            #warnings.warn("Unknown preprocessor directive " + directive.group(0) + " on line " + str(lineCounter) + " of '" + filename + "'")
+            #warnings.warn(filename + "(" + lineCounter + ") : Warning : Unknown preprocessor directive '" + directive.group(0) + "')
             return None
 
     # check for labels
@@ -130,7 +128,7 @@ def preprocess(line, lineCounter, filename):
 # Value can be the locationCounter or anything set by a .equ directive
 def setLabel(label, value, lineCounter, filename):
     if label in labels:
-        raise Exception("Redefinition or label '" + label + "' on line " + str(lineCounter) + " of '" + filename + "'")
+        raise Exception(filename + "(" + lineCounter + ") : Redefinition of label '" + label + "'")
     else:
         labels[label] = value
 
@@ -141,7 +139,7 @@ def printPretty(sourceFilename):
     open(filename, "w").close()
     f = open(filename, "a")
     for line in program:
-        f.write(line.source.ljust(20) + "0b" + line.bytecode.bin + "   0x" + line.bytecode.hex + "\n")
+        f.write(line.source.ljust(20) + "0b" + line.bytecode.bin + "   0x" + line.bytecode.hex.upper() + "\n")
 
 def writeHex(sourceFilename):
     filename = re.match(r"(.*)\.asm", sourceFilename).group(1) + ".hex";
@@ -171,12 +169,21 @@ def writeHex(sourceFilename):
     # add program
     hexLine.append(programHex)
     # calculate checksum
-    # todo
-    checksum = BitArray()
-    f.write(":" + hexLine.hex + checksum.hex + "\n")
+    checksum = calculateChecksum(hexLine)
+    hexLine.append(checksum)
+    f.write(":" + hexLine.hex.upper() + "\n")
     # write line with EOF record type
     f.write(":00000001FF")
 
+# add all bytes in BitArray together return the last byte of its twos complement
+def calculateChecksum(bits):
+    sum = 0
+    for byte in bits.cut(8):
+        sum += byte.int
+    # take twos complement
+    complementBits = BitArray(int=-sum, length = 20)
+    # get last 8 bits
+    return complementBits[-8:]
 
 parseFile(args.sourceFile)
 printPretty(args.sourceFile)

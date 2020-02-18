@@ -48,7 +48,7 @@ class Instruction:
                 elif field == "1":
                     self.fieldValues["1"] = "0b" + "1" * len(fieldInfo["bits"])
                 else:
-                    raise Exception("Unsupported field '" + field + "' on line " + str(self.lineNumber) + " of '" + self.filename + "'")
+                    raise Exception(self.filename + "(" + self.lineNumber + ") : Unsupported field '" + field + "'")
     # convert field labels and number strings to integers
     def evalFields(self, labels):
         for field, value in self.fieldValues.items():
@@ -68,7 +68,7 @@ class Instruction:
                         fieldLength = len(self.instrFormat["fields"][field]["bits"])
                         value = self.evalGenReg(value, fieldLength)
                     else:
-                        raise Exception("Unknown value '" + value + "' on line " + str(self.lineNumber) + " of '" + self.filename + "'")
+                        raise Exception(self.filename + "(" + self.lineNumber + ") : Unknown value '" + value + "'")
         #print(self.fieldValues)
 
     # register bit fields can be 3, 4, or 5 bits long
@@ -82,6 +82,7 @@ class Instruction:
         else:
             return number
 
+    # convert values to binary and put them into their places in the bytecode
     def generateBytecode(self):
         bytecode = BitArray("0x0000")
         # go through each field
@@ -89,11 +90,14 @@ class Instruction:
             # convert int to binary
             length = len(fieldInfo["bits"])
             fieldBits = BitArray(uint=self.fieldValues[field], length=length)
-            #print(fieldBits)
             # but bits in their spots
             for i in range(len(fieldInfo["bits"])):
                 # value, position
                 # subtract position from 15 to convert addresses 0-15 to 15-0
                 bytecode.set(fieldBits[i], 15-fieldInfo["bits"][i])
+        # instructions must be little endian for some reason
+        # swap the bytes
+        tempByte = bytecode[0:8]
+        bytecode[0:8] = bytecode[8:16]
+        bytecode[8:16] = tempByte[0:8]
         self.bytecode = bytecode
-        return self.bytecode
