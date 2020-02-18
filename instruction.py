@@ -3,10 +3,11 @@ import json
 from bitstring import BitArray, BitStream
 
 class Instruction:
-    def __init__(self, source, lineNumber, filename):
+    def __init__(self, source, lineNumber, filename, address):
         self.source = source # instruction string
         self.lineNumber = lineNumber
         self.filename = filename
+        self.address = address # this instruction's location relative to start of program
         self.definition = None # which instruction and format this is
         self.instrFormat = None # the format schema defining the bytecode fields
         self.fieldValues = {} # values to go in the fields
@@ -48,7 +49,7 @@ class Instruction:
                 elif field == "1":
                     self.fieldValues["1"] = "0b" + "1" * len(fieldInfo["bits"])
                 else:
-                    raise Exception(self.filename + "(" + self.lineNumber + ") : Unsupported field '" + field + "'")
+                    raise Exception(self.filename + "(" + str(self.lineNumber) + ") : Unsupported field '" + field + "'")
     # convert field labels and number strings to integers
     def evalFields(self, labels):
         for field, value in self.fieldValues.items():
@@ -58,25 +59,34 @@ class Instruction:
                 try:
                     self.fieldValues[field] = int(value, 0)
                     evaluated = True
-                except ValueError:
-                    # maybe a label
+                except (ValueError, TypeError):
+                    # else check if it's a label
                     if value in labels:
                         self.fieldValues[field] = labels[value]
-                        value = labels[value]
-                    # maybe a general purpose register
+                        # if label is an int, we are done
+                        if isinstance(labels[value], int):
+                            evaluated = True
+                        else:
+                            # label is a string
+                            value = labels[value]
+                    # else check if it's a general purpose register
                     elif re.match(r"r[1-3]?[0-9]", value):
                         fieldLength = len(self.instrFormat["fields"][field]["bits"])
-                        value = self.evalGenReg(value, fieldLength)
+                        self.fieldValues[field] = self.evalGenReg(value, fieldLength)
+                        evaluated = True
                     else:
-                        raise Exception(self.filename + "(" + self.lineNumber + ") : Unknown value '" + value + "'")
-        #print(self.fieldValues)
+                        raise Exception(self.filename + "(" + str(self.lineNumber) + ") : Unknown value '" + value + "'")
+            # now that fieldValues[field] is set to a number, run any calculations
+            if "formula" in self.instrFormat["fields"][field]:
+                formula = self.instrFormat["fields"][field]["formula"]
+                self.fieldValues[field] = eval(formula, {'__builtins__': {}}, {'fieldValue': self.fieldValues[field], 'PC': self.address})
 
     # register bit fields can be 3, 4, or 5 bits long
     # 3 bits -> r16-23
     # 4 bits -> r16-31
     # 5 bits -> r0-31
     def evalGenReg(self, register, fieldLength):
-        number = re.match(r"r([1-3]?[0-9])", register).group(1)
+        number = int(re.match(r"r([1-3]?[0-9])", register).group(1))
         if fieldLength == 3 or fieldLength == 4:
             return number - 16
         else:
@@ -89,7 +99,13 @@ class Instruction:
         for field, fieldInfo in self.instrFormat["fields"].items():
             # convert int to binary
             length = len(fieldInfo["bits"])
-            fieldBits = BitArray(uint=self.fieldValues[field], length=length)
+            # pick whether to use signed or unsigned
+            # I should have put this info in the json but it would have complicated things
+            # it just means there is less error checking
+            if self.fieldValues[field] < 0:
+                fieldBits = BitArray(int=self.fieldValues[field], length=length)
+            else:
+                fieldBits = BitArray(uint=self.fieldValues[field], length=length)
             # but bits in their spots
             for i in range(len(fieldInfo["bits"])):
                 # value, position

@@ -1,6 +1,6 @@
 {
     "instructionTypes": {
-        "2operand": {
+        "2-operand": {
             "regex": ".*\\s(?P<Rd>\\w+),\\s*(?P<Rr>\\w+)",
             "fields": {
                 "0": {
@@ -16,12 +16,109 @@
                     "bits": [9,3,2,1,0]
                 }
             }
+        },
+        "ldi": {
+            "regex": ".*\\s(?P<Rd>\\w+),\\s*(?P<K>\\w+)",
+            "fields": {
+                "opcode": {
+                    "bits": [15,14,13,12]
+                },
+                "Rd": {
+                    "bits": [7,6,5,4]
+                },
+                "K": {
+                    "bits": [11,10,9,8,3,2,1,0]
+                }
+            }
+        },
+        "in-out": {
+            "regex": ".*\\s(?P<A>\\w+),\\s*(?P<Rr>\\w+)",
+            "fields": {
+                "opcode": {
+                    "bits": [15,14,13,12,11]
+                },
+                "A": {
+                    "bits": [10,9,3,2,1,0]
+                },
+                "Rr": {
+                    "bits": [8,7,6,5,4]
+                }
+            }
+        },
+        "rjmp": {
+            "regex": ".*\\s(?P<A>\\w+)",
+            "fields": {
+                "opcode": {
+                    "bits": [15,14,13,12]
+                },
+                "A": {
+                    "bits": [11,10,9,8,7,6,5,4,3,2,1,0],
+                    "comment": "This formula expects an absolute address and converts it to relative. The instruction sets PC <- PC + k + 1",
+                    "formula": "fieldValue - PC - 1"
+                }
+            }
         }
     },
     "instructions": {
+        "cp": {
+            "format": "2-operand",
+            "opcode": "0b0101"
+        },
+        "cpc": {
+            "format": "2-operand",
+            "opcode": "0b0001"
+        },
+        "sub": {
+            "format": "2-operand",
+            "opcode": "0b0110"
+        },
+        "subc": {
+            "format": "2-operand",
+            "opcode": "0b0010"
+        },
         "add": {
-            "format": "2operand",
+            "format": "2-operand",
             "opcode": "0b0011"
+        },
+        "adc": {
+            "format": "2-operand",
+            "opcode": "0b0111"
+        },
+        "cpse": {
+            "format": "2-operand",
+            "opcode": "0b0100"
+        },
+        "and": {
+            "format": "2-operand",
+            "opcode": "0b1000"
+        },
+        "eor": {
+            "format": "2-operand",
+            "opcode": "0b1001"
+        },
+        "or": {
+            "format": "2-operand",
+            "opcode": "0b1010"
+        },
+        "mov": {
+            "format": "2-operand",
+            "opcode": "0b1011"
+        },
+        "ldi": {
+            "format": "ldi",
+            "opcode": "0b1110"
+        },
+        "out": {
+            "format": "in-out",
+            "opcode": "0b10111"
+        },
+        "in": {
+            "format": "in-out",
+            "opcode": "0b10110"
+        },
+        "rjmp": {
+            "format": "rjmp",
+            "opcode": "0b1100"
         }
     }
 }

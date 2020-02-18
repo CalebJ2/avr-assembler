@@ -46,7 +46,7 @@ def parseFile(filename):
         if not line:
             continue
         else:
-            program.append(Instruction(line, lineCounter, filename))
+            program.append(Instruction(line, lineCounter, filename, locationCounter))
             locationCounter += 1
     # only go past preprocess stage if this is the top level file
     if (fileDepth > 1):
@@ -65,12 +65,16 @@ def parseFile(filename):
             try:
                 line.setDefinition(schema["instructions"][op])
             except KeyError:
-                raise Exception(filename + "(" + line.lineNumber + ") : Unsupported instruction '" + op + "'")
+                raise Exception(line.filename + "(" + str(line.lineNumber) + ") : Unsupported instruction '" + op + "'")
             line.setFormat(schema["instructionTypes"][line.definition["format"]])
         
         # evaluate numbers and labels
-        line.evalFields(labels)
-        line.generateBytecode()
+        try:
+            line.evalFields(labels)
+            line.generateBytecode()
+        except:
+            print(line.filename + "(" + str(line.lineNumber) + ") : Error :")
+            raise
     
     fileDepth -= 1
 
@@ -101,7 +105,7 @@ def preprocess(line, lineCounter, filename):
         return None
     # check for stuff not supported by this yet
     if re.search(r"!|~|-|\*|\+|%|<<|>>|<|<=|>|==|!=|>=|&|\^|\||&&|\|\||\?", line):
-        raise Exception(filename + "(" + lineCounter + ") : Unsupported operator")
+        raise Exception(filename + "(" + str(line.lineNumber) + ") : Unsupported operator")
 
     # check for directives
     directive = re.match(r"(\#[a-zA-Z]+)|(\.[a-zA-Z]+)", line)
@@ -114,7 +118,7 @@ def preprocess(line, lineCounter, filename):
             setLabel(match.group(1), match.group(2), lineCounter, filename)
             return None
         else:
-            #warnings.warn(filename + "(" + lineCounter + ") : Warning : Unknown preprocessor directive '" + directive.group(0) + "')
+            #warnings.warn(filename + "(" + str(line.lineNumber) + ") : Warning : Unknown preprocessor directive '" + directive.group(0) + "')
             return None
 
     # check for labels
@@ -124,13 +128,16 @@ def preprocess(line, lineCounter, filename):
         # label is recorded, remove it from the string
         line = re.sub(r"([a-zA-Z0-9]+):\s*", "", line)
     
-    return line
+    # make lower case so instructions and labels will be case insensitive
+    return line.lower()
 
 # Set a label if not already set
 # Value can be the locationCounter or anything set by a .equ directive
+# labels are case insensitive
 def setLabel(label, value, lineCounter, filename):
+    label = label.lower()
     if label in labels:
-        raise Exception(filename + "(" + lineCounter + ") : Redefinition of label '" + label + "'")
+        raise Exception(filename + "(" + str(lineCounter) + ") : Redefinition of label '" + label + "'")
     else:
         labels[label] = value
 
