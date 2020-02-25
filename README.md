@@ -11,6 +11,7 @@ Run with `python3 main.py <filename>`
 Supported preprocessor features:
 - `.include`
 - `.equ`
+- `.def`
 - `;`, `//`, `/* */`
 - labels
 - binary (0b), hex (0x) and decimal (no prefix) numbers
@@ -19,6 +20,7 @@ Limitations:
 - Incomplete instruction set. See instructions.json for supported instructions.
 - Things like preprocessor operators and macros not supported
 - Most assembler directives unsupported
-- rjmp instruction target must be a label or absolute address
+- `rjmp` and branch instruction targets must be a label or absolute address
 - Program size must be less than 256 bytes
+- `.def` directive treated the same as `.equ`
 - Probably buggy

@@ -47,14 +47,16 @@ class Instruction:
                 self.fieldValues[field] = groupValue
             except (IndexError, AttributeError):
                 # else it is probably the opcode or one of the default fields
-                if field == "opcode":
-                    self.fieldValues["opcode"] = self.definition["opcode"]
-                elif field == "0":
+                if field == "0":
                     self.fieldValues["0"] = "0b" + "0" * len(fieldInfo["bits"])
                 elif field == "1":
                     self.fieldValues["1"] = "0b" + "1" * len(fieldInfo["bits"])
+                # if not a default value, see if it was defined in the instruction definition
+                # e.g. the opcode field
+                elif field in self.definition:
+                    self.fieldValues[field] = self.definition[field]
                 else:
-                    raise Exception(self.filename + "(" + str(self.lineNumber) + ") : Unsupported field '" + field + "'")
+                    raise Exception(self.filename + "(" + str(self.lineNumber) + ") : Unsupported/undefined field '" + field + "'")
     # convert field labels and number strings to integers
     def evalFields(self, labels):
         for field, value in self.fieldValues.items():
@@ -85,6 +87,7 @@ class Instruction:
             if "formula" in self.instrFormat["fields"][field]:
                 formula = self.instrFormat["fields"][field]["formula"]
                 self.fieldValues[field] = eval(formula, {'__builtins__': {}}, {'fieldValue': self.fieldValues[field], 'PC': self.address})
+            #print("Field: " + field + ", value: " + value + ", evaluated to: " + str(self.fieldValues[field]))
 
     # register bit fields can be 3, 4, or 5 bits long
     # 3 bits -> r16-23
@@ -93,9 +96,10 @@ class Instruction:
     def evalGenReg(self, register, fieldLength):
         number = int(re.match(r"r([1-3]?[0-9])", register).group(1))
         if fieldLength == 3 or fieldLength == 4:
-            return number - 16
-        else:
-            return number
+            number = number - 16
+            if number < 0:
+                raise Exception(self.filename + "(" + str(self.lineNumber) + ") : general register " + register + "'s address cannot fit in this field. Use registers r16-r" + str(16+2**fieldLength-1))
+        return number
 
     # convert values to binary and put them into their places in the bytecode
     def generateBytecode(self):
@@ -107,6 +111,7 @@ class Instruction:
             # pick whether to use signed or unsigned
             # I should have put this info in the json but it would have complicated things
             # it just means there is less error checking
+            #print("Field: " + field + ", value: " + str(self.fieldValues[field]))
             if self.fieldValues[field] < 0:
                 fieldBits = BitArray(int=self.fieldValues[field], length=length)
             else:

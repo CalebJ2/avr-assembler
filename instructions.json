@@ -1,5 +1,5 @@
 {
-    "instructionTypes": {
+    "instruction-types": {
         "2-operand": {
             "regex": ".*\\s(?P<Rd>\\w+),\\s*(?P<Rr>\\w+)",
             "fields": {
@@ -17,7 +17,7 @@
                 }
             }
         },
-        "ldi": {
+        "register-immediate": {
             "regex": ".*\\s(?P<Rd>\\w+),\\s*(?P<K>\\w+)",
             "fields": {
                 "opcode": {
@@ -83,6 +83,22 @@
                     "bits": [7,6,5,4]
                 }
             }
+        },
+        "branch-flag": {
+            "regex": ".*\\s(?P<k>\\w+)",
+            "fields": {
+                "opcode": {
+                    "bits": [15,14,13,12,11,10]
+                },
+                "k": {
+                    "bits": [9,8,7,6,5,4,3],
+                    "comment": "This formula expects an absolute address and converts it to relative. The instruction sets PC <- PC + k + 1",
+                    "formula": "fieldValue - PC - 1"
+                },
+                "flag": {
+                    "bits": [2,1,0]
+                }
+            }
         }
     },
     "instructions": {
@@ -98,7 +114,7 @@
             "format": "2-operand",
             "opcode": "0b0110"
         },
-        "subc": {
+        "sbc": {
             "format": "2-operand",
             "opcode": "0b0010"
         },
@@ -131,8 +147,32 @@
             "opcode": "0b1011"
         },
         "ldi": {
-            "format": "ldi",
+            "format": "register-immediate",
             "opcode": "0b1110"
+        },
+        "sbci": {
+            "format": "register-immediate",
+            "opcode": "0b0100"
+        },
+        "subi": {
+            "format": "register-immediate",
+            "opcode": "0b0101"
+        },
+        "ori": {
+            "format": "register-immediate",
+            "opcode": "0b0110"
+        },
+        "sbr": {
+            "format": "register-immediate",
+            "opcode": "0b0110"
+        },
+        "andi": {
+            "format": "register-immediate",
+            "opcode": "0b0111"
+        },
+        "cpi": {
+            "format": "register-immediate",
+            "opcode": "0b0011"
         },
         "out": {
             "format": "in-out",
@@ -148,11 +188,91 @@
         },
         "clr": {
             "format": "clr",
-            "opcode": "001001"
+            "opcode": "0b001001"
         },
         "ser": {
             "format": "ser",
-            "opcode": "1110"
+            "opcode": "0b1110"
+        },
+        "brcc": {
+            "format": "branch-flag",
+            "opcode": "0b111101",
+            "flag": "0b000"
+        },
+        "brsh": {
+            "format": "branch-flag",
+            "opcode": "0b111101",
+            "flag": "0b000"
+        },
+        "brcs": {
+            "format": "branch-flag",
+            "opcode": "0b111100",
+            "flag": "0b000"
+        },
+        "brlo": {
+            "format": "branch-flag",
+            "opcode": "0b111100",
+            "flag": "0b000"
+        },
+        "brhc": {
+            "format": "branch-flag",
+            "opcode": "0b111101",
+            "flag": "0b101"
+        },
+        "brhs": {
+            "format": "branch-flag",
+            "opcode": "0b111100",
+            "flag": "0b101"
+        },
+        "brid": {
+            "format": "branch-flag",
+            "opcode": "0b111101",
+            "flag": "0b111"
+        },
+        "brie": {
+            "format": "branch-flag",
+            "opcode": "0b111100",
+            "flag": "0b111"
+        },
+        "brtc": {
+            "format": "branch-flag",
+            "opcode": "0b111101",
+            "flag": "0b110"
+        },
+        "brts": {
+            "format": "branch-flag",
+            "opcode": "0b111100",
+            "flag": "0b110"
+        },
+        "brvc": {
+            "format": "branch-flag",
+            "opcode": "0b111101",
+            "flag": "0b011"
+        },
+        "brvs": {
+            "format": "branch-flag",
+            "opcode": "0b111100",
+            "flag": "0b011"
+        },
+        "brlt": {
+            "format": "branch-flag",
+            "opcode": "0b111100",
+            "flag": "0b100"
+        },
+        "brmi": {
+            "format": "branch-flag",
+            "opcode": "0b111100",
+            "flag": "0b010"
+        },
+        "brne": {
+            "format": "branch-flag",
+            "opcode": "0b111101",
+            "flag": "0b001"
+        },
+        "brpl": {
+            "format": "branch-flag",
+            "opcode": "0b111101",
+            "flag": "0b010"
         }
     }
 }

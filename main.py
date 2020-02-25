@@ -66,7 +66,7 @@ def parseFile(filename):
                 line.setDefinition(schema["instructions"][op])
             except KeyError:
                 raise Exception(line.filename + "(" + str(line.lineNumber) + ") : Unsupported instruction '" + op + "'")
-            line.setFormat(schema["instructionTypes"][line.definition["format"]])
+            line.setFormat(schema["instruction-types"][line.definition["format"]])
         
         # evaluate numbers and labels
         try:
