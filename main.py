@@ -117,6 +117,13 @@ def preprocess(line, lineCounter, filename):
             match = re.match(r"\.equ\s+(.*[^\s])\s*=\s*(.*[^\s])", line)
             setLabel(match.group(1), match.group(2), lineCounter, filename)
             return None
+        elif directive.group(2) == ".def":
+            match = re.match(r"\.def\s+(.*[^\s])\s*=\s*(r[1-3]?[0-9])", line)
+            if not match:
+                raise Exception(filename + "(" + str(line.lineNumber) + ") : directive doesn't match required format of .def <name> = <register>")
+            else:
+                setLabel(match.group(1), match.group(2), lineCounter, filename)
+                return None
         else:
             print(filename + "(" + str(lineCounter) + ") : Warning : Ignoring unknown preprocessor directive '" + directive.group(0) + "'")
             return None

@@ -116,6 +116,11 @@ class Instruction:
                 # value, position
                 # subtract position from 15 to convert addresses 0-15 to 15-0
                 bytecode.set(fieldBits[i], 15-fieldInfo["bits"][i])
+            # special case for clr instruction that has a wierd format
+            if "duplicateBits" in fieldInfo:
+                # but bits in their spots
+                for i in range(len(fieldInfo["duplicateBits"])):
+                    bytecode.set(fieldBits[i], 15-fieldInfo["duplicateBits"][i])
         # instructions must be little endian for some reason
         # swap the bytes
         tempByte = bytecode[0:8]

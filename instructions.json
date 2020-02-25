@@ -57,6 +57,32 @@
                     "formula": "fieldValue - PC - 1"
                 }
             }
+        },
+        "clr": {
+            "regex": ".*\\s(?P<Rd>\\w+)",
+            "fields": {
+                "opcode": {
+                    "bits": [15,14,13,12,11,10]
+                },
+                "Rd": {
+                    "bits": [9,8,7,6,5],
+                    "duplicateBits": [4,3,2,1,0]
+                }
+            }
+        },
+        "ser": {
+            "regex": ".*\\s(?P<Rd>\\w+)",
+            "fields": {
+                "opcode": {
+                    "bits": [15,14,13,12]
+                },
+                "1": {
+                    "bits": [11,10,9,8,3,2,1,0]
+                },
+                "Rd": {
+                    "bits": [7,6,5,4]
+                }
+            }
         }
     },
     "instructions": {
@@ -119,6 +145,14 @@
         "rjmp": {
             "format": "rjmp",
             "opcode": "0b1100"
+        },
+        "clr": {
+            "format": "clr",
+            "opcode": "001001"
+        },
+        "ser": {
+            "format": "ser",
+            "opcode": "1110"
         }
     }
 }
